@@ -37,16 +37,17 @@
   <ul class="authors">
     <li>Ishtiak Mahmud Saad<sup>1</sup></li>
     <li>Mominul Islam<sup>2</sup></li>
-    <li>Shahriyar Zaman Ridoy<sup>3,5</sup></li>
-    <li>Md Manjurul Ahsan<sup>4,5</sup></li>
-    <li>Azmine Toushik Wasi<sup>5</sup></li>
+    <li>Shahriyar Zaman Ridoy<sup>3,6</sup></li>
+    <li>Md Manjurul Ahsan<sup>4,6</sup></li>
+    <li>Azmine Toushik Wasi<sup>5,6</sup></li>
   </ul>
   <ul class="affils">
     <li><sup>1</sup>Rajshahi University of Engineering &amp; Technology</li>
     <li><sup>2</sup>Tulane University</li>
     <li><sup>3</sup>North South University</li>
     <li><sup>4</sup>University of Oklahoma</li>
-    <li><sup>5</sup>Computational Intelligence and Operations Laboratory (CIOL)</li>
+    <li><sup>5</sup>University of Surrey</li>
+    <li><sup>6</sup>Computational Intelligence and Operations Laboratory (CIOL)</li>
   </ul>
 
   <div class="links">
@@ -92,8 +93,9 @@
 <section class="block container" id="abstract">
   <div class="head"><h2>Abstract</h2></div>
   <div class="narrow abstract">
-    <p>Chunking is a hidden bottleneck in dense retrieval and retrieval-augmented generation: it determines the units that can be indexed, retrieved, and used as evidence. Yet most systems segment documents with fixed token windows or globally thresholded similarity drops. We propose <b class="sc">Seismos</b>, which models consecutive sentence-embedding similarities as a document-level signal and derives boundary decisions from the null hypothesis of no semantic transition.</p>
-    <p>Across BEIR corpora we find three corpus-invariant properties: bimodal document structure, rapid survival decay of shallow minima, and positive lag-1 autocorrelation. Accounting for them yields a normalized discrete Laplacian detector with a single interpretable decision rule. Under one fixed configuration, <span class="sc">Seismos</span> improves over fixed-length, recursive and production semantic chunkers on five BEIR benchmarks, transfers unchanged to held-out TREC-COVID, stays competitive on long-document and multilingual retrieval, and in end-to-end RAG retrieves better evidence and yields more faithful answers at 15–23× lower preprocessing cost.</p>
+    <p>Chunking is a hidden bottleneck in dense retrieval and retrieval-augmented generation: it determines the units that can be indexed, retrieved, and ultimately used as evidence. Yet most systems still segment documents using fixed token windows or globally thresholded semantic similarity drops, treating chunking as an engineering heuristic rather than a statistical decision. We propose <b class="sc">Seismos</b>, a statistical signal detection framework for semantic chunking. <span class="sc">Seismos</span> models consecutive sentence-embedding cosine similarities as a document-level signal and derives boundary decisions from the null hypothesis of no semantic transition.</p>
+    <p>Across four development BEIR corpora, we establish three corpus-invariant properties: bimodal document structure, rapid survival decay of shallow local minima, and positive lag-1 autocorrelation. These properties show that semantic boundaries should be detected by variance-normalized deviations, not by document means or global similarity thresholds. Accounting for autocorrelation leads to a normalized discrete Laplacian detector that identifies significant semantic valleys through a single interpretable decision rule.</p>
+    <p>Evaluated on five BEIR benchmarks, <span class="sc">Seismos</span> consistently improves over fixed-length, recursive, and production semantic chunking baselines under one fixed operating configuration. Without corpus-specific retuning, the same detector transfers to a held-out TREC-COVID corpus. Beyond short documents, <span class="sc">Seismos</span> remains competitive with strong fixed-length chunking on long-document (DAPR, ConTEB) and multilingual (MIRACL) retrieval across four encoders, and in end-to-end RAG on LongBench it retrieves better-ranked evidence and yields more faithful answers at 15–23× lower preprocessing cost than production semantic chunkers. Our results suggest that the boundaries needed for effective retrieval are already encoded in embedding-similarity signals, and that principled, efficient, LLM-free chunking can be obtained by detecting them statistically.</p>
   </div>
 </section>
 
