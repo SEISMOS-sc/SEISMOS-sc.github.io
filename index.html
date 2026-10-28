@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SEISMOS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="SEISMOS: a statistical signal detection framework for semantic chunking. One parameter, no LLM calls, linear time. NeurIPS 2026.">
+<meta name="author" content="Ishtiak Mahmud Saad, Mominul Islam, Shahriyar Zaman Ridoy, Md Manjurul Ahsan, Azmine Toushik Wasi">
+<meta property="og:title" content="SEISMOS: A Statistical Signal Detection Framework for Semantic Chunking">
+<meta property="og:description" content="Semantic chunking as hypothesis testing. One parameter, no LLM calls, O(n). NeurIPS 2026.">
+<meta property="og:image" content="static/images/pipeline.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23ffffff'/%3E%3Cpath d='M3 11 L8 10 L11 12 L14 10 L16 24 L18 11 L22 10 L25 12 L29 11' fill='none' stroke='%231f5fa8' stroke-width='2.4' stroke-linejoin='round' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='24' r='3' fill='%23c62d2a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="static/css/style.css">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+    svg: { fontCache: "global" },
+    options: { skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code", "canvas"] }
+  };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+</head>
+<body>
+<main>
+
+<!-- ============ HERO ============ -->
+<header class="hero container">
+  <span class="badge"><span class="dot"></span><b>NeurIPS 2026</b></span>
+  <h1><span class="name">Seismos</span>A Statistical Signal Detection Framework for Semantic Chunking</h1>
+
+  <ul class="authors">
+    <li>Ishtiak Mahmud Saad<sup>1</sup></li>
+    <li>Mominul Islam<sup>2</sup></li>
+    <li>Shahriyar Zaman Ridoy<sup>3,5</sup></li>
+    <li>Md Manjurul Ahsan<sup>4,5</sup></li>
+    <li>Azmine Toushik Wasi<sup>5</sup></li>
+  </ul>
+  <ul class="affils">
+    <li><sup>1</sup>Rajshahi University of Engineering &amp; Technology</li>
+    <li><sup>2</sup>Tulane University</li>
+    <li><sup>3</sup>North South University</li>
+    <li><sup>4</sup>University of Oklahoma</li>
+    <li><sup>5</sup>Computational Intelligence and Operations Laboratory (CIOL)</li>
+  </ul>
+
+  <div class="links">
+    <!-- To activate: change <span class="pill soon"> to <a class="pill" href="URL"> and remove <small>soon</small> -->
+    <span class="pill soon" title="Coming soon">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.5h5.5L13 5v9.5H4z M9.5 1.5V5H13" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      Paper <small>soon</small>
+    </span>
+    <span class="pill soon" title="Coming soon">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3.5h10M3 6.5h10M3 9.5h7M3 12.5h5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      arXiv <small>soon</small>
+    </span>
+    <a class="pill" href="https://github.com/SEISMOS-sc/SEISMOS-sc.github.io" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4 1.5 8l4 4M10.5 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Code
+    </a>
+    <a class="pill" href="#bibtex-section">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h4v4H4.5L3 11V4zM9 4h4v4h-2.5L9 11V4z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      BibTeX
+    </a>
+  </div>
+
+  <div class="teaser">
+    <div class="scope">
+      <div class="scope-head">
+        <span class="live">similarity signal · k = 2.5</span>
+        <span class="keys"><span><i class="k-line"></i><span>x<sub>i</sub> = cos(e<sub>i</sub>, e<sub>i+1</sub>)</span></span><span><i class="k-dot"></i><span>boundary, t<sub>i</sub> &gt; k</span></span></span>
+      </div>
+      <canvas id="trace" role="img" aria-label="Scrolling sentence-similarity signal; red markers show detected semantic boundaries"></canvas>
+    </div>
+    <p class="tldr"><b>TL;DR</b>Split a document only where its sentence-similarity signal has a statistically significant valley. One parameter, no LLM calls, linear time.</p>
+  </div>
+
+  <ul class="stats">
+    <li><strong>5 / 5</strong><span>BEIR datasets where <span class="sc">Seismos</span> is the best chunker</span></li>
+    <li><strong>+68–79%</strong><span>chunk nDCG@5 in end-to-end RAG</span></li>
+    <li><strong>15–23×</strong><span>faster than production semantic chunkers</span></li>
+    <li><strong>k = 2.5</strong><span>one parameter, never retuned</span></li>
+  </ul>
+</header>
+
+<!-- ============ ABSTRACT ============ -->
+<section class="block container" id="abstract">
+  <div class="head"><h2>Abstract</h2></div>
+  <div class="narrow abstract">
+    <p>Chunking is a hidden bottleneck in dense retrieval and retrieval-augmented generation: it determines the units that can be indexed, retrieved, and used as evidence. Yet most systems segment documents with fixed token windows or globally thresholded similarity drops. We propose <b class="sc">Seismos</b>, which models consecutive sentence-embedding similarities as a document-level signal and derives boundary decisions from the null hypothesis of no semantic transition.</p>
+    <p>Across BEIR corpora we find three corpus-invariant properties: bimodal document structure, rapid survival decay of shallow minima, and positive lag-1 autocorrelation. Accounting for them yields a normalized discrete Laplacian detector with a single interpretable decision rule. Under one fixed configuration, <span class="sc">Seismos</span> improves over fixed-length, recursive and production semantic chunkers on five BEIR benchmarks, transfers unchanged to held-out TREC-COVID, stays competitive on long-document and multilingual retrieval, and in end-to-end RAG retrieves better evidence and yields more faithful answers at 15–23× lower preprocessing cost.</p>
+  </div>
+</section>
+
+<!-- ============ METHOD ============ -->
+<section class="block container" id="method">
+  <div class="head">
+    <span class="eyebrow">Method</span>
+    <h2>Chunking as hypothesis testing</h2>
+    <p>Under the null of no topic shift, the document mean cancels out. The right normalizer is the signal's own variability.</p>
+  </div>
+
+  <figure>
+    <button class="shot" type="button" aria-label="Enlarge the SEISMOS pipeline figure">
+      <img src="static/images/pipeline.jpg" width="2400" height="1267" alt="SEISMOS pipeline: encode sentences, compute consecutive cosine similarity, apply the discrete Laplacian, normalize to t_i, split where t_i exceeds k, and index the resulting chunks.">
+    </button>
+    <figcaption><b>Pipeline.</b> Similarity signal → discrete Laplacian → normalized statistic \(t_i\) → split where \(t_i&gt;k\).</figcaption>
+  </figure>
+
+  <div class="cards">
+    <div class="card">
+      <span class="tag">Step 1 · Null</span>
+      <h3>The mean cancels</h3>
+      <p>With no boundary at \(i\), the slope into a valley has zero mean, so \(\bar{x}_D\)-scaled thresholds are misspecified.</p>
+      <div class="eq">\[ \operatorname{Var}(x_{i-1}-x_i)=2\sigma^2 \]</div>
+    </div>
+    <div class="card">
+      <span class="tag">Step 2 · Autocorrelation</span>
+      <h3>Similarities are AR(1)</h3>
+      <p>Lag-1 ACF is 0.27–0.38 on every corpus. The second difference has an exact AR(1) variance.</p>
+      <div class="eq">\[ \operatorname{Var}(D_i)=\sigma^2(6-8\rho+2\rho^2) \]</div>
+    </div>
+    <div class="card hl">
+      <span class="tag">Step 3 · Detector</span>
+      <h3>One self-normalized test</h3>
+      <p>\(\hat{s}_D=\operatorname{std}(D)\) absorbs both \(\sigma\) and \(\rho\). Split where</p>
+      <div class="eq">\[ t_i=\frac{x_{i+1}-2x_i+x_{i-1}}{\hat{s}_D}&gt;k \]</div>
+    </div>
+  </div>
+
+  <details class="code">
+    <summary>The whole detector in NumPy <span>sketch of Algorithm 2</span></summary>
+<pre class="code"><code><span class="k">def</span> seismos_chunk(sentences, encode, k=<span class="r">2.5</span>):
+    n = len(sentences)
+    <span class="k">if</span> n &lt; <span class="r">5</span>:
+        <span class="k">return</span> [<span class="r">" "</span>.join(sentences)]
+    E = encode(sentences)                         <span class="c"># (n, d), L2-normalized</span>
+    x = np.sum(E[:-<span class="r">1</span>] * E[<span class="r">1</span>:], axis=<span class="r">1</span>)           <span class="c"># x_i = &lt;e_i, e_i+1&gt;</span>
+    D = x[<span class="r">2</span>:] - <span class="r">2</span> * x[<span class="r">1</span>:-<span class="r">1</span>] + x[:-<span class="r">2</span>]              <span class="c"># discrete Laplacian</span>
+    s = D.std()                                   <span class="c"># absorbs sigma and rho</span>
+    B = set() <span class="k">if</span> s == <span class="r">0</span> <span class="k">else</span> set(np.flatnonzero(D / s &gt; k) + <span class="r">1</span>)
+
+    chunks, cur = [], [sentences[<span class="r">0</span>]]
+    <span class="k">for</span> i <span class="k">in</span> range(n - <span class="r">1</span>):                       <span class="c"># boundary i sits between s_i and s_i+1</span>
+        <span class="k">if</span> i <span class="k">in</span> B:
+            chunks.append(<span class="r">" "</span>.join(cur)); cur = [sentences[i + <span class="r">1</span>]]
+        <span class="k">else</span>:
+            cur.append(sentences[i + <span class="r">1</span>])
+    chunks.append(<span class="r">" "</span>.join(cur))
+    <span class="k">return</span> chunks</code></pre>
+  </details>
+</section>
+
+<!-- ============ PLAYGROUND ============ -->
+<section class="block container" id="playground">
+  <div class="head">
+    <span class="eyebrow">Interactive</span>
+    <h2>Try the detector</h2>
+    <p>A synthetic document with four planted topic shifts (▲) and one gradual trough. Drag <i>k</i> and watch the splits.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-bar">
+      <label for="k-slider">k <input id="k-slider" type="range" min="0.5" max="5" step="0.1" value="2.5"> <output id="k-out" for="k-slider">2.5</output></label>
+      <button class="pill light" type="button" id="lab-new">New document</button>
+      <button class="pill light" type="button" id="lab-reset">Reset</button>
+    </div>
+    <canvas id="lab-canvas" role="img" aria-label="Top: similarity signal with detected chunks shaded. Bottom: normalized curvature t_i against the threshold k."></canvas>
+    <dl class="readout">
+      <div><dt>null tail Pr(Z&gt;k)</dt><dd id="ro-tail">0.6%</dd></div>
+      <div><dt>splits</dt><dd id="ro-found">4</dd></div>
+      <div><dt>shifts found</dt><dd id="ro-rec">4 / 4</dd></div>
+      <div><dt>noise splits</dt><dd id="ro-fp">0</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ============ SIGNAL ============ -->
+<section class="block container" id="signal">
+  <div class="head">
+    <span class="eyebrow">Signal analysis</span>
+    <h2>Three properties, every corpus</h2>
+  </div>
+  <figure>
+    <button class="shot" type="button" aria-label="Enlarge the document types figure">
+      <img src="static/images/doc_types.png" width="2400" height="854" alt="Three SciFact documents: a smooth one with no split, a mixed one where a broad trough is ignored and one sharp valley is split, and a structured one with two sharp valleys giving three chunks.">
+    </button>
+    <figcaption>The same similarity value means different things in different documents, so the threshold must be relative to each document's own signal.</figcaption>
+  </figure>
+  <div class="props">
+    <div class="prop"><strong>18–23%</strong><span>of documents have sharp topic valleys; 34–58% are flat</span></div>
+    <div class="prop"><strong>&gt; 80%</strong><span>of local minima vanish by prominence τ = 0.10</span></div>
+    <div class="prop"><strong>ρ = 0.27–0.38</strong><span>lag-1 autocorrelation of consecutive similarities</span></div>
+  </div>
+  <div class="grid2">
+    <figure>
+      <button class="shot" type="button" aria-label="Enlarge the survival decay figure">
+        <img src="static/images/tau_survival.png" width="1400" height="889" alt="Fraction of local minima surviving as tau increases for five corpora.">
+      </button>
+      <figcaption>Most minima are shallow noise.</figcaption>
+    </figure>
+    <figure>
+      <button class="shot" type="button" aria-label="Enlarge the AR(1) validation figure">
+        <img src="static/images/ar1_factor.png" width="1300" height="850" alt="Empirical ratio std(D) over std(X) per corpus: 2.03, 1.93, 2.17, 2.09.">
+      </button>
+      <figcaption>\(\hat{s}_D/\sigma_D\) is stable at 1.93–2.17, as the AR(1) model predicts.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section class="block container" id="results">
+  <div class="head">
+    <span class="eyebrow">Results</span>
+    <h2>One operating point, every benchmark</h2>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Result sets">
+    <button class="tab" role="tab" id="t-beir" aria-controls="p-beir" aria-selected="true" tabindex="0" type="button">BEIR</button>
+    <button class="tab" role="tab" id="t-long" aria-controls="p-long" aria-selected="false" tabindex="-1" type="button">Long-doc &amp; multilingual</button>
+    <button class="tab" role="tab" id="t-abl" aria-controls="p-abl" aria-selected="false" tabindex="-1" type="button">Ablations</button>
+  </div>
+
+  <div role="tabpanel" id="p-beir" aria-labelledby="t-beir">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>NDCG@10 (%)</th><th>ArguAna</th><th>FiQA</th><th>NFCorpus</th><th>SciFact</th><th>TREC-COVID†</th></tr></thead>
+        <tbody>
+          <tr><td>LangChain Semantic</td><td>63.62</td><td>39.18</td><td>36.78</td><td>73.57</td><td>66.90</td></tr>
+          <tr><td>LlamaIndex Semantic</td><td>56.85</td><td>35.68</td><td>37.05</td><td>72.53</td><td>66.24</td></tr>
+          <tr><td>Recursive (best)</td><td>59.91</td><td>39.35</td><td>37.33</td><td>74.42</td><td>70.00</td></tr>
+          <tr><td>Fixed (best)</td><td>60.62</td><td>39.04</td><td>36.36</td><td>74.22</td><td>69.81</td></tr>
+          <tr class="ours"><td>SEISMOS · z-score</td><td>63.53</td><td>39.23</td><td class="best">37.63</td><td>74.52</td><td class="best">71.40</td></tr>
+          <tr class="ours"><td>SEISMOS · Laplacian</td><td class="best">63.63</td><td class="best">39.50</td><td class="best">37.63</td><td class="best">74.55</td><td>71.35</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="panel-note">Same encoder (BGE-base) and index for every chunker. † held out from all tuning. Up to +4.98% over the best fixed-length and +6.21% over the best recursive chunker.</p>
+  </div>
+
+  <div role="tabpanel" id="p-long" aria-labelledby="t-long" hidden>
+    <div class="table-wrap">
+      <table class="compact">
+        <thead>
+          <tr class="group"><th></th><th colspan="4">DAPR</th><th colspan="3">ConTEB</th><th colspan="3">MIRACL</th></tr>
+          <tr><th>nDCG@10</th><th>MS MARCO</th><th>NQ</th><th>CondQA</th><th>Genomics</th><th>NarrQA</th><th>ESG</th><th>Geo</th><th>JA</th><th>DE</th><th>AR</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Fixed@480</td><td>67.1</td><td class="best">48.1</td><td class="best">27.9</td><td class="best">43.2</td><td class="best">82.2</td><td class="best">46.1</td><td>93.6</td><td>75.2</td><td>48.4</td><td>74.3</td></tr>
+          <tr class="ours"><td>SEISMOS</td><td class="best">68.1</td><td>47.1</td><td>26.9</td><td>42.9</td><td class="best">82.2</td><td>44.6</td><td class="best">93.7</td><td class="best">75.6</td><td class="best">49.3</td><td class="best">74.4</td></tr>
+          <tr><td>Δ</td><td><span class="delta up">+1.0</span></td><td><span class="delta down">−1.0</span></td><td><span class="delta down">−1.0</span></td><td><span class="delta down">−0.3</span></td><td><span class="delta flat">0.0</span></td><td><span class="delta down">−1.5</span></td><td><span class="delta up">+0.1</span></td><td><span class="delta up">+0.4</span></td><td><span class="delta up">+0.8</span></td><td><span class="delta up">+0.1</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="panel-note">Competitive with a strong fixed-length baseline on documents up to tens of thousands of tokens, and across Japanese, German and Arabic with no language-specific tuning.</p>
+  </div>
+
+  <div role="tabpanel" id="p-abl" aria-labelledby="t-abl" hidden>
+    <div class="charts">
+      <div class="chart">
+        <h4>Each correction adds up</h4>
+        <div class="sub">NDCG@10 gain over a rolling-mean chunker (points)</div>
+        <div class="phase">
+          <div class="phase-row"><div class="ds">ArguAna</div><div class="stack">
+            <div class="pbar p2"><div class="track"><div class="fill" style="width:75.7%"></div></div><span class="v">+11.36</span></div>
+            <div class="pbar p3"><div class="track"><div class="fill" style="width:95.1%"></div></div><span class="v">+14.26</span></div>
+            <div class="pbar p4"><div class="track"><div class="fill" style="width:95.7%"></div></div><span class="v">+14.36</span></div>
+          </div></div>
+          <div class="phase-row"><div class="ds">FiQA</div><div class="stack">
+            <div class="pbar p2"><div class="track"><div class="fill" style="width:56.7%"></div></div><span class="v">+8.51</span></div>
+            <div class="pbar p3"><div class="track"><div class="fill" style="width:66.3%"></div></div><span class="v">+9.94</span></div>
+            <div class="pbar p4"><div class="track"><div class="fill" style="width:68.1%"></div></div><span class="v">+10.21</span></div>
+          </div></div>
+          <div class="phase-row"><div class="ds">SciFact</div><div class="stack">
+            <div class="pbar p2"><div class="track"><div class="fill" style="width:26.9%"></div></div><span class="v">+4.03</span></div>
+            <div class="pbar p3"><div class="track"><div class="fill" style="width:27.2%"></div></div><span class="v">+4.08</span></div>
+            <div class="pbar p4"><div class="track"><div class="fill" style="width:27.4%"></div></div><span class="v">+4.11</span></div>
+          </div></div>
+          <div class="phase-row"><div class="ds">NFCorpus</div><div class="stack">
+            <div class="pbar p2"><div class="track"><div class="fill" style="width:1.9%"></div></div><span class="v">+0.28</span></div>
+            <div class="pbar p3"><div class="track"><div class="fill" style="width:5.9%"></div></div><span class="v">+0.88</span></div>
+            <div class="pbar p4"><div class="track"><div class="fill" style="width:5.9%"></div></div><span class="v">+0.88</span></div>
+          </div></div>
+        </div>
+        <div class="legend">
+          <span><i style="background:#b9c3d1"></i>mean-scaled</span>
+          <span><i style="background:#79a3d4"></i>z-score</span>
+          <span><i style="background:var(--signal)"></i>Laplacian</span>
+        </div>
+      </div>
+      <figure class="chart" style="padding:12px">
+        <button class="shot" type="button" aria-label="Enlarge the k sensitivity figure" style="border:0;padding:0">
+          <img src="static/images/k_sensitivity.png" width="2400" height="770" alt="NDCG@10 versus k on four datasets; curves flatten from k = 2.5.">
+        </button>
+        <figcaption style="margin-top:8px">Performance plateaus from \(k=2.5\) on all four development sets.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RAG ============ -->
+<section class="block container" id="rag">
+  <div class="head">
+    <span class="eyebrow">End-to-end RAG</span>
+    <h2>Better evidence, faster</h2>
+    <p>LongBench NarrativeQA, documents up to 67k tokens. Only the chunker changes.</p>
+  </div>
+  <div class="charts" data-grow>
+    <div class="chart">
+      <h4>Chunk nDCG@5</h4>
+      <div class="sub">Rank of the evidence-bearing chunk</div>
+      <div class="bars">
+        <div class="bar ours"><span class="name">SEISMOS</span><span class="track"><span class="fill" style="width:95%"></span></span><span class="val">0.190</span></div>
+        <div class="bar"><span class="name">Fixed@480</span><span class="track"><span class="fill" style="width:56.5%"></span></span><span class="val">0.113</span></div>
+        <div class="bar"><span class="name">Recursive</span><span class="track"><span class="fill" style="width:56.5%"></span></span><span class="val">0.113</span></div>
+        <div class="bar"><span class="name">LlamaIndex</span><span class="track"><span class="fill" style="width:54%"></span></span><span class="val">0.108</span></div>
+        <div class="bar"><span class="name">LangChain</span><span class="track"><span class="fill" style="width:53%"></span></span><span class="val">0.106</span></div>
+      </div>
+      <div class="axis"><span></span><span class="ticks"><span>0</span><span>0.05</span><span>0.10</span><span>0.15</span><span>0.20</span></span><span></span></div>
+    </div>
+    <div class="chart">
+      <h4>Preprocessing time</h4>
+      <div class="sub">Seconds per ≈27k-token document</div>
+      <div class="bars">
+        <div class="bar"><span class="name">LlamaIndex</span><span class="track"><span class="fill" style="width:97%"></span></span><span class="val">3.105</span></div>
+        <div class="bar"><span class="name">LangChain</span><span class="track"><span class="fill" style="width:63.6%"></span></span><span class="val">2.036</span></div>
+        <div class="bar"><span class="name">Recursive</span><span class="track"><span class="fill" style="width:13.6%"></span></span><span class="val">0.436</span></div>
+        <div class="bar ours"><span class="name">SEISMOS</span><span class="track"><span class="fill" style="width:4.2%"></span></span><span class="val">0.133</span></div>
+        <div class="bar"><span class="name">Fixed@480</span><span class="track"><span class="fill" style="width:0.0125%;min-width:2px"></span></span><span class="val">0.0004</span></div>
+      </div>
+      <div class="axis"><span></span><span class="ticks"><span>0</span><span>0.8</span><span>1.6</span><span>2.4</span><span>3.2</span></span><span></span></div>
+    </div>
+  </div>
+  <div class="props">
+    <div class="prop"><strong>0.687</strong><span>HHEM faithfulness, best of five chunkers (+0.043 to +0.098)</span></div>
+    <div class="prop"><strong>0.952</strong><span>human-rated correctness vs 0.333–0.429 (21 items, 3 annotators)</span></div>
+    <div class="prop"><strong>11 / 100</strong><span>documents with a chunk under 20 tokens, vs 94 / 100 for semantic baselines</span></div>
+  </div>
+
+  <div class="head" style="margin-top:56px"><h2 style="font-size:1.4rem">What the generator sees</h2></div>
+  <div class="tabs" role="tablist" aria-label="Example questions">
+    <button class="tab" role="tab" id="t-q2" aria-controls="q2" aria-selected="true" tabindex="0" type="button">The slime attack</button>
+    <button class="tab" role="tab" id="t-q8" aria-controls="q8" aria-selected="false" tabindex="-1" type="button">Bill in Chicago</button>
+    <button class="tab" role="tab" id="t-q3" aria-controls="q3" aria-selected="false" tabindex="-1" type="button">The hidden lover</button>
+  </div>
+  <div role="tabpanel" id="q2" aria-labelledby="t-q2">
+    <p class="qa-q">Where does the slime attack Dana and Oscar?</p>
+    <div class="qa-grid">
+      <div class="ans ref"><h5>Reference</h5><p>museum</p></div>
+      <div class="ans ours"><h5>SEISMOS</h5><p>The slime attack on Dana and Oscar occurs in the Museum Restoration Studio.</p></div>
+      <div class="ans"><h5>Fixed@480</h5><p>The slime attack Dana and Oscar in the bathtub at Dana's apartment.</p></div>
+      <div class="ans"><h5>Recursive</h5><p>The slime attack occurs in the bathtub at Dana's apartment.</p></div>
+      <div class="ans"><h5>LangChain</h5><p>The slime attack on Dana and Oscar occurs in Dana's apartment bathroom.</p></div>
+      <div class="ans"><h5>LlamaIndex</h5><p>The slime attack occurs in Dana's apartment when Dana is preparing to bathe Oscar in the old claw-footed bathtub.</p></div>
+    </div>
+  </div>
+  <div role="tabpanel" id="q8" aria-labelledby="t-q8" hidden>
+    <p class="qa-q">Where did Bill work when he lived in Chicago?</p>
+    <div class="qa-grid">
+      <div class="ans ref"><h5>Reference</h5><p>Bill worked in a steel mill.</p></div>
+      <div class="ans ours"><h5>SEISMOS</h5><p>Bill worked in a steel mill when he lived in Chicago.</p></div>
+      <div class="ans"><h5>Fixed@480</h5><p>Bill worked in a mill when he lived in Chicago.</p></div>
+      <div class="ans"><h5>Recursive</h5><p>Bill worked in a mill when he lived in Chicago.</p></div>
+      <div class="ans"><h5>LangChain</h5><p>The provided context does not specify where Bill worked when he lived in Chicago. […] it is not possible to determine where Bill worked in Chicago.</p></div>
+      <div class="ans"><h5>LlamaIndex</h5><p>The provided context does not specify where Bill worked when he lived in Chicago. […] it is not possible to determine his workplace in Chicago.</p></div>
+    </div>
+  </div>
+  <div role="tabpanel" id="q3" aria-labelledby="t-q3" hidden>
+    <p class="qa-q">Where did the lover hide?</p>
+    <div class="qa-grid">
+      <div class="ans ref"><h5>Reference</h5><p>In the closet</p></div>
+      <div class="ans ours"><h5>SEISMOS</h5><p>The lover (Gorenflot) hid in the cupboard.</p></div>
+      <div class="ans"><h5>Fixed@480</h5><p>The lover, Gorenflot, hid in the cupboard on the ground floor of Madame de Merret's house, which served as a closet for hanging dresses.</p></div>
+      <div class="ans"><h5>Recursive</h5><p>The lover hid under a big stone on a sort of breakwater along the river bank, nearly opposite la Grande Breteche.</p></div>
+      <div class="ans"><h5>LangChain</h5><p>The context does not provide information about where the lover hid. […]</p></div>
+      <div class="ans"><h5>LlamaIndex</h5><p>The passage does not explicitly state where the lover hid. […] This suggests that the lover likely hid near there after escaping.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BIBTEX ============ -->
+<section class="block container" id="bibtex-section">
+  <div class="head"><h2>BibTeX</h2></div>
+  <div class="narrow bib">
+    <button class="pill light" type="button" id="copy-bib">Copy</button>
+<pre id="bibtex">@inproceedings{saad2026seismos,
+  title     = {{SEISMOS}: A Statistical Signal Detection Framework
+               for Semantic Chunking},
+  author    = {Saad, Ishtiak Mahmud and Islam, Mominul and
+               Ridoy, Shahriyar Zaman and Ahsan, Md Manjurul and
+               Wasi, Azmine Toushik},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2026}
+}</pre>
+  </div>
+</section>
+</main>
+
+<footer class="container">
+  <span class="sc">Seismos</span> · NeurIPS 2026 · <a href="https://github.com/SEISMOS-sc/SEISMOS-sc.github.io" target="_blank" rel="noopener noreferrer">GitHub</a>
+</footer>
+
+<script src="static/js/detector.js"></script>
+<script src="static/js/main.js"></script>
+</body>
+</html>
